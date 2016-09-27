@@ -13,10 +13,10 @@ public class Film {
     Date mReleaseDate;
 
     public Film(String posterPath, String title, String overview, float voteAverage, Date releaseDate) {
-        mPosterPath = posterPath;
-        mTitle = title;
-        mOverview = overview;
-        mVoteAverage = voteAverage;
-        mReleaseDate = releaseDate;
+        this.mPosterPath = posterPath;
+        this.mTitle = title;
+        this.mOverview = overview;
+        this.mVoteAverage = voteAverage;
+        this.mReleaseDate = releaseDate;
     }
 }
