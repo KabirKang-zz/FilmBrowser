@@ -22,7 +22,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 
 public class FilmsFragment extends Fragment {
@@ -41,7 +44,7 @@ public class FilmsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_films, container, false);
-        mFilmsAdapter = new FilmAdapter(getActivity(), new ArrayList<String>());
+        mFilmsAdapter = new FilmAdapter(getActivity(), new ArrayList<Film>());
 
         GridView gridView = (GridView) rootView.findViewById(R.id.films_grid);
         gridView.setAdapter(mFilmsAdapter);
@@ -58,14 +61,13 @@ public class FilmsFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(LOG_TAG, "STARTTTTTTTTTTTTTTTTTTTTTTTTTTT");
         updateFilms();
     }
 
-    public class FetchFilmsTask extends AsyncTask<String, Void, String []> {
+    public class FetchFilmsTask extends AsyncTask<String, Void, Film []> {
         private final String LOG_TAG = FetchFilmsTask.class.getSimpleName();
 
-        private String[] getFilmDataFromJson(String filmsJsonStr)throws JSONException {
+        private Film[] getFilmDataFromJson(String filmsJsonStr) throws JSONException {
             final String FILM_LIST = "results";
             final String ORIGINAL_TITLE = "original_title";
             final String POSTER_PATH = "poster_path";
@@ -75,7 +77,7 @@ public class FilmsFragment extends Fragment {
 
             JSONObject filmsJson = new JSONObject(filmsJsonStr);
             JSONArray filmsArray = filmsJson.getJSONArray(FILM_LIST);
-            String[] results = new String[filmsArray.length()];
+            Film[] results = new Film[filmsArray.length()];
             /*
             Needs to handle each JSON object
              */
@@ -83,15 +85,24 @@ public class FilmsFragment extends Fragment {
             for (int i = 0; i < filmsArray.length(); i++) {
                 JSONObject film = filmsArray.getJSONObject(i);
                 String path = "http://image.tmdb.org/t/p/w185" + film.getString(POSTER_PATH);
-                results[i] = path;
+                String title = film.getString(ORIGINAL_TITLE);
+                String overview = film.getString(PLOT_SYNOPSIS);
+                double rating = film.getDouble(USER_RATING);
+
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date releaseDate = format.parse(film.getString(RELEASE_DATE));
+                    results[i] = new Film(path, title, overview, rating, releaseDate);
+                } catch (ParseException e) {
+                    results[i] = new Film(path, title, overview, rating, null);
+                }
             }
 
             return results;
         }
 
         @Override
-        protected String[] doInBackground(String... params) {
-            Log.d(LOG_TAG, "DOING IN BACKGROUNDDDD");
+        protected Film[] doInBackground(String... params) {
             if (params.length == 0) {
                 return null;
             }
@@ -102,14 +113,12 @@ public class FilmsFragment extends Fragment {
 
             try {
                 final String API_PARAM = "api_key";
-                // http://api.themoviedb.org/3/movie/popular?api_key=[YOUR_API_KEY]
                 final String MOVIE_DB_URL = "http://api.themoviedb.org/3/movie/" + params[0];
                 Uri builtUri = Uri.parse(MOVIE_DB_URL).buildUpon()
                         .appendQueryParameter(API_PARAM, BuildConfig.MOVIE_DB_API_KEY)
                         .build();
 
                 URL url = new URL(builtUri.toString());
-                Log.d(LOG_TAG, "URL" + url);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
@@ -130,7 +139,6 @@ public class FilmsFragment extends Fragment {
                 }
 
                 filmsJsonStr = buffer.toString();
-                Log.d(LOG_TAG, "JSON" + filmsJsonStr);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 return null;
@@ -157,12 +165,11 @@ public class FilmsFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String [] result) {
+        protected void onPostExecute(Film [] result) {
             if (result != null) {
                 mFilmsAdapter.clear();
-                for (String filmStr : result) {
-                    Log.d(LOG_TAG, "ONPOSTEXECUTE" + filmStr);
-                    mFilmsAdapter.add(filmStr);
+                for (Film film : result) {
+                    mFilmsAdapter.add(film);
                 }
             }
         }
