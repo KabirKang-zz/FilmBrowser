@@ -12,4 +12,6 @@
     <string name="pref_search_label">Search Type</string>
 
     <string name="film_extra" translatable="false">FILM</string>
+
+    <string name="results_error">An Error Occurred</string>
 </resources>

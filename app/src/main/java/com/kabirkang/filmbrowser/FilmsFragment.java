@@ -1,7 +1,10 @@
 package com.kabirkang.filmbrowser;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -114,7 +118,7 @@ public class FilmsFragment extends Fragment {
 
         @Override
         protected Film[] doInBackground(String... params) {
-            if (params.length == 0) {
+            if (params.length == 0 || !isNetworkConnected()) {
                 return null;
             }
 
@@ -165,7 +169,6 @@ public class FilmsFragment extends Fragment {
                     }
                 }
             }
-            // Implement background task to pull movies
            try {
                return getFilmDataFromJson(filmsJsonStr);
            } catch (JSONException e) {
@@ -182,7 +185,22 @@ public class FilmsFragment extends Fragment {
                 for (Film film : result) {
                     mFilmsAdapter.add(film);
                 }
+            } else {
+                Toast.makeText(getActivity(), R.string.results_error,
+                        Toast.LENGTH_LONG).show();
             }
+        }
+    }
+
+    protected boolean isNetworkConnected() {
+        try {
+            ConnectivityManager mConnectivityManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
+            return (mNetworkInfo == null) ? false : true;
+
+        }catch (NullPointerException e){
+            return false;
+
         }
     }
 }
