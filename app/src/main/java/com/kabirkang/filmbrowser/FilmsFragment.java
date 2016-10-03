@@ -54,7 +54,7 @@ public class FilmsFragment extends Fragment {
     private void updateFilms() {
         FetchFilmsTask filmsTask = new FetchFilmsTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String searchType = prefs.getString("searchType", "popular");
+        String searchType = prefs.getString(getString(R.string.pref_search_key), getString(R.string.pref_search_popular));
         filmsTask.execute(searchType);
     }
 
@@ -112,6 +112,7 @@ public class FilmsFragment extends Fragment {
             String filmsJsonStr = null;
 
             try {
+                Log.d(LOG_TAG, "BLAHHHHH" + params[0]);
                 final String API_PARAM = "api_key";
                 final String MOVIE_DB_URL = "http://api.themoviedb.org/3/movie/" + params[0];
                 Uri builtUri = Uri.parse(MOVIE_DB_URL).buildUpon()
