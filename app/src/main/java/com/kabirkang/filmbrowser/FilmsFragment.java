@@ -1,5 +1,6 @@
 package com.kabirkang.filmbrowser;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 
 import org.json.JSONArray;
@@ -48,6 +50,15 @@ public class FilmsFragment extends Fragment {
 
         GridView gridView = (GridView) rootView.findViewById(R.id.films_grid);
         gridView.setAdapter(mFilmsAdapter);
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Film film = mFilmsAdapter.getItem(i);
+                Intent detailIntent = new Intent(getActivity(), DetailActivity.class).putExtra(getString(R.string.film_extra), film);
+                startActivity(detailIntent);
+            }
+        });
         return rootView;
     }
 
@@ -112,7 +123,6 @@ public class FilmsFragment extends Fragment {
             String filmsJsonStr = null;
 
             try {
-                Log.d(LOG_TAG, "BLAHHHHH" + params[0]);
                 final String API_PARAM = "api_key";
                 final String MOVIE_DB_URL = "http://api.themoviedb.org/3/movie/" + params[0];
                 Uri builtUri = Uri.parse(MOVIE_DB_URL).buildUpon()
