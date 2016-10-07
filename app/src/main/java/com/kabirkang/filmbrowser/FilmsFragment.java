@@ -2,16 +2,17 @@ package com.kabirkang.filmbrowser;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -47,6 +48,27 @@ public class FilmsFragment extends Fragment {
         setHasOptionsMenu(true);
     }
 
+    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case R.id.popular_menu_option:
+                updateFilms(R.string.pref_search_popular);
+                return true;
+            case R.id.rating_menu_option:
+                updateFilms(R.string.pref_search_rated);
+                return true;
+            default:
+                break;
+        }
+
+        return false;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_films, container, false);
@@ -66,17 +88,16 @@ public class FilmsFragment extends Fragment {
         return rootView;
     }
 
-    private void updateFilms() {
+    private void updateFilms(int searchType) {
         FetchFilmsTask filmsTask = new FetchFilmsTask();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String searchType = prefs.getString(getString(R.string.pref_search_key), getString(R.string.pref_search_popular));
-        filmsTask.execute(searchType);
+        String search = getString(searchType);
+        filmsTask.execute(search);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        updateFilms();
+        updateFilms(R.string.pref_search_popular);
     }
 
     public class FetchFilmsTask extends AsyncTask<String, Void, Film []> {
