@@ -19,6 +19,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.kabirkang.filmbrowser.film.Film;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,8 +50,9 @@ public class FilmsFragment extends Fragment {
         setHasOptionsMenu(true);
     }
 
-    @Override public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.film_list, menu);
     }
 
     @Override
@@ -103,8 +106,61 @@ public class FilmsFragment extends Fragment {
     public class FetchFilmsTask extends AsyncTask<String, Void, Film []> {
         private final String LOG_TAG = FetchFilmsTask.class.getSimpleName();
 
+        private Film[] addVideosToFilms(Film[] films) {
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+            String filmsJsonStr = null;
+
+            final String API_PARAM = "api_key";
+            ArrayList<Film> filmsWithVideo = new ArrayList<Film>();
+            for (Film film : films) {
+                try {
+                    final String MOVIE_DB_URL = "http://api.themoviedb.org/3/movie/" + film.getmId() + "/videos";
+                    Uri builtUri = Uri.parse(MOVIE_DB_URL).buildUpon()
+                            .appendQueryParameter(API_PARAM, BuildConfig.MOVIE_DB_API_KEY)
+                            .build();
+                    URL url = new URL(builtUri.toString());
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.connect();
+                    InputStream inputStream = urlConnection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+                    if (inputStream == null) {
+                        return null;
+                    }
+                    reader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line + "/n");
+                    }
+
+                    if (buffer.length() == 0) {
+                        return null;
+                    }
+
+                    filmsJsonStr = buffer.toString();
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Error ", e);
+                    return null;
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (final IOException e) {
+                            Log.e(LOG_TAG, "Error closing stream", e);
+                        }
+                    }
+                }
+            }
+        }
+
         private Film[] getFilmDataFromJson(String filmsJsonStr) throws JSONException {
             final String FILM_LIST = "results";
+            final String ID = "id";
             final String ORIGINAL_TITLE = "original_title";
             final String POSTER_PATH = "poster_path";
             final String PLOT_SYNOPSIS = "overview";
@@ -124,13 +180,14 @@ public class FilmsFragment extends Fragment {
                 String title = film.getString(ORIGINAL_TITLE);
                 String overview = film.getString(PLOT_SYNOPSIS);
                 double rating = film.getDouble(USER_RATING);
+                int id = film.getInt(ID);
 
                 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
                 try {
                     Date releaseDate = format.parse(film.getString(RELEASE_DATE));
-                    results[i] = new Film(path, title, overview, rating, releaseDate);
+                    results[i] = new Film(id, path, title, overview, rating, releaseDate);
                 } catch (ParseException e) {
-                    results[i] = new Film(path, title, overview, rating, null);
+                    results[i] = new Film(id, path, title, overview, rating, null);
                 }
             }
 
@@ -191,7 +248,9 @@ public class FilmsFragment extends Fragment {
                 }
             }
            try {
-               return getFilmDataFromJson(filmsJsonStr);
+//               Move for loop here
+               Film[] films = getFilmDataFromJson(filmsJsonStr);
+               films = addVideosToFilms(films);
            } catch (JSONException e) {
                Log.e(LOG_TAG, e.getMessage(), e);
                e.printStackTrace();

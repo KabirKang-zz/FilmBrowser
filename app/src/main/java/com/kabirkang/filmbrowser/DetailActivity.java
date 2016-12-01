@@ -4,12 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.kabirkang.filmbrowser.film.Film;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -45,7 +47,7 @@ public class DetailActivity extends AppCompatActivity {
                 Film film = intent.getParcelableExtra(getString(R.string.film_extra));
                 mTitleStr = film.getTitle();
                 mOverviewStr = film.getOverview();
-                mPosterStr = "http://image.tmdb.org/t/p/w185" + film.getPosterPath();
+                mPosterStr = film.getPosterPath();
                 SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
 
                 mReleaseStr = "Release Date: " + df.format(film.getReleaseDate()).toString();
@@ -54,6 +56,7 @@ public class DetailActivity extends AppCompatActivity {
                 ((TextView) rootView.findViewById(R.id.detail_overview)).setText(mOverviewStr);
                 ((TextView) rootView.findViewById(R.id.detail_date)).setText(mReleaseStr);
                 ((TextView) rootView.findViewById(R.id.detail_rating)).setText(mRatingStr);
+                Log.d(LOG_TAG, mPosterStr);
                 Picasso.with(getContext()).load(mPosterStr).into((ImageView) rootView.findViewById(R.id.detail_poster));
             }
             return rootView;
