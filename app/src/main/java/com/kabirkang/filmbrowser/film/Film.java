@@ -3,52 +3,54 @@ package com.kabirkang.filmbrowser.film;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Date;
 
 /**
  * Created by Kabir on 9/26/2016.
  */
 public class Film implements Parcelable {
-    int mId;
-    String mPosterPath;
-    String mTitle;
-    String mOverview;
-    double mVoteAverage;
-    Date mReleaseDate;
-    FilmVideo[] mVideos;
-    FilmReview[] mReviews;
+    @SerializedName("id")
+    @Expose
+    private String mId;
 
-    public int getmId() {
-        return mId;
-    }
+    @SerializedName("poster_path")
+    @Expose
+    private String mPosterPath;
 
-    public void setmId(int mId) {
-        this.mId = mId;
-    }
+    @SerializedName("original_title")
+    @Expose
+    private String mTitle;
 
-    public FilmVideo[] getmVideos() {
-        return mVideos;
-    }
+    @SerializedName("overview")
+    @Expose
+    private String mOverview;
 
-    public void setmVideos(FilmVideo[] mVideos) {
-        this.mVideos = mVideos;
-    }
+    @SerializedName("vote_average")
+    @Expose
+    private String mVoteAverage;
 
-    public FilmReview[] getmReviews() {
-        return mReviews;
-    }
+    @SerializedName("release_date")
+    @Expose
+    private String mReleaseDate;
 
-    public void setmReviews(FilmReview[] mReviews) {
-        this.mReviews = mReviews;
-    }
-
-    public Film(int mId, String posterPath, String title, String overview, double voteAverage, Date releaseDate) {
+    public Film(String mId, String posterPath, String title, String overview, String voteAverage, String releaseDate) {
         this.mId = mId;
         this.mPosterPath = posterPath;
         this.mTitle = title;
         this.mOverview = overview;
         this.mVoteAverage = voteAverage;
         this.mReleaseDate = releaseDate;
+    }
+
+    public String getmId() {
+        return mId;
+    }
+
+    public void setmId(String mId) {
+        this.mId = mId;
     }
 
     public String getPosterPath() {
@@ -75,19 +77,19 @@ public class Film implements Parcelable {
         mOverview = overview;
     }
 
-    public double getVoteAverage() {
+    public String getVoteAverage() {
         return mVoteAverage;
     }
 
-    public void setVoteAverage(float voteAverage) {
+    public void setVoteAverage(String voteAverage) {
         mVoteAverage = voteAverage;
     }
 
-    public Date getReleaseDate() {
+    public String getReleaseDate() {
         return mReleaseDate;
     }
 
-    public void setReleaseDate(Date releaseDate) {
+    public void setReleaseDate(String releaseDate) {
         mReleaseDate = releaseDate;
     }
 
@@ -96,17 +98,16 @@ public class Film implements Parcelable {
         out.writeString(mPosterPath);
         out.writeString(mTitle);
         out.writeString(mOverview);
-        out.writeDouble(mVoteAverage);
-        out.writeLong(mReleaseDate != null ? mReleaseDate.getTime() : -1);
+        out.writeString(mVoteAverage);
+        out.writeString(mReleaseDate);
     }
 
     private Film(Parcel in) {
         this.mPosterPath = in.readString();
         this.mTitle = in.readString();
         this.mOverview = in.readString();
-        this.mVoteAverage = in.readDouble();
-        long releaseAsLong = in.readLong();
-        this.mReleaseDate = releaseAsLong == -1 ? null : new Date(releaseAsLong);
+        this.mVoteAverage = in.readString();
+        this.mReleaseDate = in.readString();
 
 
     }

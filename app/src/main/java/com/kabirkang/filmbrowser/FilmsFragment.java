@@ -19,7 +19,10 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.kabirkang.filmbrowser.api.ApiClient;
+import com.kabirkang.filmbrowser.api.MovieDBService;
 import com.kabirkang.filmbrowser.film.Film;
+import com.kabirkang.filmbrowser.film.FilmListResult;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +38,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.kabirkang.filmbrowser.BuildConfig.MOVIE_DB_API_KEY;
 
 
 public class FilmsFragment extends Fragment {
@@ -92,9 +101,29 @@ public class FilmsFragment extends Fragment {
     }
 
     private void updateFilms(int searchType) {
-        FetchFilmsTask filmsTask = new FetchFilmsTask();
         String search = getString(searchType);
-        filmsTask.execute(search);
+
+        MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
+        Call<FilmListResult> call = service.listTopRatedFilms();
+        call.enqueue(new Callback<FilmListResult>() {
+            @Override
+            public void onResponse(Call<FilmListResult> call, Response<FilmListResult> response) {
+                Log.d(LOG_TAG, response.raw().toString());
+                if (response.isSuccessful()) {
+                    Log.d(LOG_TAG, "Success");
+                    Log.d(LOG_TAG, response.toString());
+                } else {
+                    Log.d(LOG_TAG, "There's been a problem");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<FilmListResult> call, Throwable t) {
+                Log.d(LOG_TAG, "There's been a yuge problem");
+                Log.d(LOG_TAG, t.getStackTrace().toString());
+                Log.d(LOG_TAG, t.getLocalizedMessage());
+            }
+        });
     }
 
     @Override
@@ -103,60 +132,8 @@ public class FilmsFragment extends Fragment {
         updateFilms(R.string.pref_search_popular);
     }
 
-    public class FetchFilmsTask extends AsyncTask<String, Void, Film []> {
+    public class FetchFilmsTask extends AsyncTask<String, Void, Film[]> {
         private final String LOG_TAG = FetchFilmsTask.class.getSimpleName();
-
-        private Film[] addVideosToFilms(Film[] films) {
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String filmsJsonStr = null;
-
-            final String API_PARAM = "api_key";
-            ArrayList<Film> filmsWithVideo = new ArrayList<Film>();
-            for (Film film : films) {
-                try {
-                    final String MOVIE_DB_URL = "http://api.themoviedb.org/3/movie/" + film.getmId() + "/videos";
-                    Uri builtUri = Uri.parse(MOVIE_DB_URL).buildUpon()
-                            .appendQueryParameter(API_PARAM, BuildConfig.MOVIE_DB_API_KEY)
-                            .build();
-                    URL url = new URL(builtUri.toString());
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestMethod("GET");
-                    urlConnection.connect();
-                    InputStream inputStream = urlConnection.getInputStream();
-                    StringBuffer buffer = new StringBuffer();
-                    if (inputStream == null) {
-                        return null;
-                    }
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
-                    String line;
-
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line + "/n");
-                    }
-
-                    if (buffer.length() == 0) {
-                        return null;
-                    }
-
-                    filmsJsonStr = buffer.toString();
-                } catch (IOException e) {
-                    Log.e(LOG_TAG, "Error ", e);
-                    return null;
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
-                    if (reader != null) {
-                        try {
-                            reader.close();
-                        } catch (final IOException e) {
-                            Log.e(LOG_TAG, "Error closing stream", e);
-                        }
-                    }
-                }
-            }
-        }
 
         private Film[] getFilmDataFromJson(String filmsJsonStr) throws JSONException {
             final String FILM_LIST = "results";
@@ -179,16 +156,11 @@ public class FilmsFragment extends Fragment {
                 String path = "http://image.tmdb.org/t/p/w185" + film.getString(POSTER_PATH);
                 String title = film.getString(ORIGINAL_TITLE);
                 String overview = film.getString(PLOT_SYNOPSIS);
-                double rating = film.getDouble(USER_RATING);
-                int id = film.getInt(ID);
+                String rating = film.getString(USER_RATING);
+                String id = film.getString(ID);
+                String releaseDate = film.getString(RELEASE_DATE);
+                results[i] = new Film(id, path, title, overview, rating, releaseDate);
 
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                try {
-                    Date releaseDate = format.parse(film.getString(RELEASE_DATE));
-                    results[i] = new Film(id, path, title, overview, rating, releaseDate);
-                } catch (ParseException e) {
-                    results[i] = new Film(id, path, title, overview, rating, null);
-                }
             }
 
             return results;
@@ -208,7 +180,7 @@ public class FilmsFragment extends Fragment {
                 final String API_PARAM = "api_key";
                 final String MOVIE_DB_URL = "http://api.themoviedb.org/3/movie/" + params[0];
                 Uri builtUri = Uri.parse(MOVIE_DB_URL).buildUpon()
-                        .appendQueryParameter(API_PARAM, BuildConfig.MOVIE_DB_API_KEY)
+                        .appendQueryParameter(API_PARAM, MOVIE_DB_API_KEY)
                         .build();
 
                 URL url = new URL(builtUri.toString());
@@ -247,19 +219,17 @@ public class FilmsFragment extends Fragment {
                     }
                 }
             }
-           try {
-//               Move for loop here
-               Film[] films = getFilmDataFromJson(filmsJsonStr);
-               films = addVideosToFilms(films);
-           } catch (JSONException e) {
-               Log.e(LOG_TAG, e.getMessage(), e);
-               e.printStackTrace();
-           }
+            try {
+                return getFilmDataFromJson(filmsJsonStr);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            }
             return null;
         }
 
         @Override
-        protected void onPostExecute(Film [] result) {
+        protected void onPostExecute(Film[] result) {
             if (result != null) {
                 mFilmsAdapter.clear();
                 for (Film film : result) {
