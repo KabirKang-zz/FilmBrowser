@@ -19,10 +19,14 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.kabirkang.filmbrowser.api.ApiClient;
 import com.kabirkang.filmbrowser.api.MovieDBService;
 import com.kabirkang.filmbrowser.film.Film;
-import com.kabirkang.filmbrowser.film.FilmListResult;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,19 +36,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.kabirkang.filmbrowser.BuildConfig.MOVIE_DB_API_KEY;
-
 
 public class FilmsFragment extends Fragment {
     private final String LOG_TAG = FilmsFragment.class.getSimpleName();
@@ -102,26 +104,27 @@ public class FilmsFragment extends Fragment {
 
     private void updateFilms(int searchType) {
         String search = getString(searchType);
+        final Type listType = new TypeToken<ArrayList<Film>>(){}.getType();
+        List<Film> filmList;
 
+        final Gson gson = new GsonBuilder()
+                .registerTypeAdapter(listType, new Film.FilmsDeserializer())
+                .create();
         MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
-        Call<FilmListResult> call = service.listTopRatedFilms();
-        call.enqueue(new Callback<FilmListResult>() {
+        Call<JsonObject> call = service.listTopRatedFilms();
+        call.enqueue(new Callback<JsonObject>() {
             @Override
-            public void onResponse(Call<FilmListResult> call, Response<FilmListResult> response) {
-                Log.d(LOG_TAG, response.raw().toString());
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    Log.d(LOG_TAG, "Success");
-                    Log.d(LOG_TAG, response.toString());
+                    Log.d(LOG_TAG, gson.fromJson(response.body(), listType).toString());
+
                 } else {
-                    Log.d(LOG_TAG, "There's been a problem");
                 }
             }
 
             @Override
-            public void onFailure(Call<FilmListResult> call, Throwable t) {
-                Log.d(LOG_TAG, "There's been a yuge problem");
-                Log.d(LOG_TAG, t.getStackTrace().toString());
-                Log.d(LOG_TAG, t.getLocalizedMessage());
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+
             }
         });
     }

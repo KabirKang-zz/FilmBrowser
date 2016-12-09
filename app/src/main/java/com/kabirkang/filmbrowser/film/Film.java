@@ -3,10 +3,18 @@ package com.kabirkang.filmbrowser.film;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Kabir on 9/26/2016.
@@ -130,4 +138,15 @@ public class Film implements Parcelable {
             return new Film[size];
         }
     };
+
+    public static class FilmsDeserializer implements JsonDeserializer<List<Film>> {
+        public List<Film> deserialize(JsonElement je, Type type, JsonDeserializationContext jdc) throws JsonParseException {
+            JsonArray data = je.getAsJsonObject().getAsJsonArray("results");
+            ArrayList<Film> filmsList = new ArrayList<Film>();
+            for (JsonElement e : data) {
+                filmsList.add((Film)jdc.deserialize(e, Film.class));
+            }
+            return filmsList;
+        }
+    }
 }
