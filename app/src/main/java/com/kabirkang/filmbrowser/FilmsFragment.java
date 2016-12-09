@@ -87,7 +87,7 @@ public class FilmsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_films, container, false);
         mFilmsAdapter = new FilmAdapter(getActivity(), new ArrayList<Film>());
-
+        mFilmsAdapter.setNotifyOnChange(true);
         GridView gridView = (GridView) rootView.findViewById(R.id.films_grid);
         gridView.setAdapter(mFilmsAdapter);
 
@@ -105,26 +105,35 @@ public class FilmsFragment extends Fragment {
     private void updateFilms(int searchType) {
         String search = getString(searchType);
         final Type listType = new TypeToken<ArrayList<Film>>(){}.getType();
-        List<Film> filmList;
 
         final Gson gson = new GsonBuilder()
                 .registerTypeAdapter(listType, new Film.FilmsDeserializer())
                 .create();
         MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
-        Call<JsonObject> call = service.listTopRatedFilms();
+        Call<JsonObject> call = (searchType == R.string.pref_search_popular) ? service.listPopularFilms() : service.listTopRatedFilms();
         call.enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (response.isSuccessful()) {
-                    Log.d(LOG_TAG, gson.fromJson(response.body(), listType).toString());
-
+                    List<Film> films = gson.fromJson(response.body(), listType);
+                    if (!films.isEmpty()) {
+                        Log.d(LOG_TAG, "NOT EMPTY");
+                        mFilmsAdapter.clear();
+                        for (Film film : films) {
+                            Log.d(LOG_TAG, film.getTitle());
+                            mFilmsAdapter.add(film);
+                        }
+                        mFilmsAdapter.notifyDataSetChanged();
+                    }
                 } else {
+                    Toast.makeText(getActivity(), R.string.results_error,
+                            Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-
+                Log.d(LOG_TAG, "FAILURE");
             }
         });
     }
