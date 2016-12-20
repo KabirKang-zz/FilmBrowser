@@ -44,14 +44,15 @@ public class DetailActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
             if (intent != null && intent.hasExtra(getString(R.string.film_extra))) {
+                Log.d(LOG_TAG, "this far");
                 Film film = intent.getParcelableExtra(getString(R.string.film_extra));
                 mTitleStr = film.getTitle();
                 mOverviewStr = film.getOverview();
-                mPosterStr = film.getPosterPath();
+                mPosterStr = "http://image.tmdb.org/t/p/w185" + film.getPosterPath();
                 SimpleDateFormat df = new SimpleDateFormat("MM/dd/yyyy");
 
-                mReleaseStr = "Release Date: " + df.format(film.getReleaseDate()).toString();
-                mRatingStr = "Vote Average: " + String.valueOf(film.getVoteAverage());
+                mReleaseStr = "Release Date: " + film.getReleaseDate();
+                mRatingStr = "Vote Average: " + film.getVoteAverage();
                 ((TextView) rootView.findViewById(R.id.detail_title)).setText(mTitleStr);
                 ((TextView) rootView.findViewById(R.id.detail_overview)).setText(mOverviewStr);
                 ((TextView) rootView.findViewById(R.id.detail_date)).setText(mReleaseStr);
@@ -60,6 +61,10 @@ public class DetailActivity extends AppCompatActivity {
                 Picasso.with(getContext()).load(mPosterStr).into((ImageView) rootView.findViewById(R.id.detail_poster));
             }
             return rootView;
+        }
+
+        public void getRelatedVideos() {
+
         }
     }
 }

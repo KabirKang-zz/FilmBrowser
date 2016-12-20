@@ -2,6 +2,7 @@ package com.kabirkang.filmbrowser.film;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;

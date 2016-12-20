@@ -96,6 +96,7 @@ public class FilmsFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Film film = mFilmsAdapter.getItem(i);
                 Intent detailIntent = new Intent(getActivity(), DetailActivity.class).putExtra(getString(R.string.film_extra), film);
+                Log.d(LOG_TAG, "here");
                 startActivity(detailIntent);
             }
         });
@@ -120,7 +121,7 @@ public class FilmsFragment extends Fragment {
                         Log.d(LOG_TAG, "NOT EMPTY");
                         mFilmsAdapter.clear();
                         for (Film film : films) {
-                            Log.d(LOG_TAG, film.getTitle());
+                            Log.d(LOG_TAG, film.getPosterPath());
                             mFilmsAdapter.add(film);
                         }
                         mFilmsAdapter.notifyDataSetChanged();

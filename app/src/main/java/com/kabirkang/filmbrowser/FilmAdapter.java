@@ -24,7 +24,7 @@ public class FilmAdapter extends ArrayAdapter<Film> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Film film = getItem(position);
-        String posterUrl = film.getPosterPath();
+        String posterUrl = "http://image.tmdb.org/t/p/w185" + film.getPosterPath();
 
         if (convertView == null) {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.film_item, parent, false);
