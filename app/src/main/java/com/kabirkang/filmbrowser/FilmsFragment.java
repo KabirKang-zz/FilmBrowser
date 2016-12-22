@@ -95,8 +95,8 @@ public class FilmsFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Film film = mFilmsAdapter.getItem(i);
+                Log.d(LOG_TAG, "onClick" + film.getmId());
                 Intent detailIntent = new Intent(getActivity(), DetailActivity.class).putExtra(getString(R.string.film_extra), film);
-                Log.d(LOG_TAG, "here");
                 startActivity(detailIntent);
             }
         });
@@ -118,11 +118,10 @@ public class FilmsFragment extends Fragment {
                 if (response.isSuccessful()) {
                     List<Film> films = gson.fromJson(response.body(), listType);
                     if (!films.isEmpty()) {
-                        Log.d(LOG_TAG, "NOT EMPTY");
                         mFilmsAdapter.clear();
                         for (Film film : films) {
-                            Log.d(LOG_TAG, film.getPosterPath());
                             mFilmsAdapter.add(film);
+                            Log.d(LOG_TAG, "id: " + film.getmId());
                         }
                         mFilmsAdapter.notifyDataSetChanged();
                     }

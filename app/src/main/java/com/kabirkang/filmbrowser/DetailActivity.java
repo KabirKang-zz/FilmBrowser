@@ -11,10 +11,17 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.JsonObject;
+import com.kabirkang.filmbrowser.api.ApiClient;
+import com.kabirkang.filmbrowser.api.MovieDBService;
 import com.kabirkang.filmbrowser.film.Film;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -31,6 +38,7 @@ public class DetailActivity extends AppCompatActivity {
 
     public static class DetailFragment extends Fragment {
         private static final String LOG_TAG = DetailFragment.class.getSimpleName();
+        private String mIdStr;
         private String mTitleStr;
         private String mOverviewStr;
         private String mPosterStr;
@@ -44,8 +52,8 @@ public class DetailActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
             if (intent != null && intent.hasExtra(getString(R.string.film_extra))) {
-                Log.d(LOG_TAG, "this far");
                 Film film = intent.getParcelableExtra(getString(R.string.film_extra));
+                mIdStr = film.getmId();
                 mTitleStr = film.getTitle();
                 mOverviewStr = film.getOverview();
                 mPosterStr = "http://image.tmdb.org/t/p/w185" + film.getPosterPath();
@@ -57,14 +65,31 @@ public class DetailActivity extends AppCompatActivity {
                 ((TextView) rootView.findViewById(R.id.detail_overview)).setText(mOverviewStr);
                 ((TextView) rootView.findViewById(R.id.detail_date)).setText(mReleaseStr);
                 ((TextView) rootView.findViewById(R.id.detail_rating)).setText(mRatingStr);
-                Log.d(LOG_TAG, mPosterStr);
                 Picasso.with(getContext()).load(mPosterStr).into((ImageView) rootView.findViewById(R.id.detail_poster));
+
+                getRelatedVideos(mIdStr);
             }
             return rootView;
         }
 
-        public void getRelatedVideos() {
+        private void getRelatedVideos(String id) {
+            MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
+            Call<JsonObject> call = service.getRelatedVideos(id);
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (response.isSuccessful()) {
+                        Log.d(LOG_TAG, response.body().getAsString());
+                    } else {
+                        Log.d(LOG_TAG, "SOMETHING WENT WRONG");
+                    }
+                }
 
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+
+                }
+            });
         }
     }
 }

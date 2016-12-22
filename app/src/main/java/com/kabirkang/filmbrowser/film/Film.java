@@ -104,6 +104,7 @@ public class Film implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
+        out.writeString(mId);
         out.writeString(mPosterPath);
         out.writeString(mTitle);
         out.writeString(mOverview);
@@ -112,6 +113,7 @@ public class Film implements Parcelable {
     }
 
     private Film(Parcel in) {
+        this.mId = in.readString();
         this.mPosterPath = in.readString();
         this.mTitle = in.readString();
         this.mOverview = in.readString();
