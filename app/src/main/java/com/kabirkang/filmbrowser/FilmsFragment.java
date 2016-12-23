@@ -121,7 +121,6 @@ public class FilmsFragment extends Fragment {
                         mFilmsAdapter.clear();
                         for (Film film : films) {
                             mFilmsAdapter.add(film);
-                            Log.d(LOG_TAG, "id: " + film.getmId());
                         }
                         mFilmsAdapter.notifyDataSetChanged();
                     }

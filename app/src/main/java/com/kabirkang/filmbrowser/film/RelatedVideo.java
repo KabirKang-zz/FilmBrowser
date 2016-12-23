@@ -5,6 +5,8 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -15,23 +17,41 @@ import java.util.List;
  */
 
 public class RelatedVideo {
-    private String mFilmId;
+    @SerializedName("id")
+    @Expose
     private String mVideoId;
+
+    @SerializedName("key")
+    @Expose
     private String mKey;
+
+    @SerializedName("name")
+    @Expose
     private String mName;
+
+    @SerializedName("site")
+    @Expose
     private String mSite;
 
+    @SerializedName("size")
+    @Expose
     private int mSize;
+
+    @SerializedName("type")
+    @Expose
     private String mType;
 
     // iso_639_1
+    @SerializedName("iso_639_1")
+    @Expose
     private String mLanguage;
 
     // iso_3166_1
+    @SerializedName("iso_3166_1")
+    @Expose
     private String mCountry;
 
-    public RelatedVideo(String mFilmId, String mVideoId, String mKey, String mName, String mSite, int mSize, String mType, String mLanguage, String mCountry) {
-        this.mFilmId = mFilmId;
+    public RelatedVideo(String mVideoId, String mKey, String mName, String mSite, int mSize, String mType, String mLanguage, String mCountry) {
         this.mVideoId = mVideoId;
         this.mKey = mKey;
         this.mName = mName;

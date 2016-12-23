@@ -53,6 +53,11 @@
             android:layout_below="@id/detail_overview"
             android:layout_marginBottom="@dimen/detail_text_margin"
             />
+        <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/related_videos_list">
+        </ListView>
 
     </RelativeLayout>
 </ScrollView>

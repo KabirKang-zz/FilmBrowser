@@ -11,13 +11,20 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.kabirkang.filmbrowser.api.ApiClient;
 import com.kabirkang.filmbrowser.api.MovieDBService;
 import com.kabirkang.filmbrowser.film.Film;
+import com.kabirkang.filmbrowser.film.RelatedVideo;
 import com.squareup.picasso.Picasso;
 
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,6 +45,7 @@ public class DetailActivity extends AppCompatActivity {
 
     public static class DetailFragment extends Fragment {
         private static final String LOG_TAG = DetailFragment.class.getSimpleName();
+        private RelatedVideoAdapter mRelatedVideoAdapter;
         private String mIdStr;
         private String mTitleStr;
         private String mOverviewStr;
@@ -73,16 +81,24 @@ public class DetailActivity extends AppCompatActivity {
         }
 
         private void getRelatedVideos(String id) {
+            final Type listType = new TypeToken<ArrayList<RelatedVideo>>(){}.getType();
+            final Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(listType, new RelatedVideo.RelatedVideosDeserializer())
+                    .create();
             MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
             Call<JsonObject> call = service.getRelatedVideos(id);
-            Log.d(LOG_TAG, "GONNA CALL");
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                    Log.d(LOG_TAG, "GOT STUFF");
                     if (response.isSuccessful()) {
                         Log.d(LOG_TAG, "SUCCESS");
-                        Log.d(LOG_TAG, response.body().toString());
+                        List<RelatedVideo> relatedVideos = gson.fromJson(response.body(), listType);
+                        if (!relatedVideos.isEmpty()) {
+                            mRelatedVideoAdapter.clear();
+                            for (RelatedVideo video : relatedVideos) {
+                                mRelatedVideoAdapter.add(video);
+                            }
+                        }
                     } else {
                         Log.d(LOG_TAG, "SOMETHING WENT WRONG");
                     }
