@@ -21,17 +21,27 @@ public class FilmAdapter extends ArrayAdapter<Film> {
         super(context, 0, films);
     }
 
+    private static class ViewHolder {
+        ImageView filmPoster;
+    }
+
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Film film = getItem(position);
+        ViewHolder viewHolder;
         String posterUrl = "http://image.tmdb.org/t/p/w185" + film.getPosterPath();
 
         if (convertView == null) {
+            viewHolder = new ViewHolder();
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.film_item, parent, false);
+            viewHolder.filmPoster = (ImageView) convertView.findViewById(R.id.film_poster);
+            convertView.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        ImageView filmPoster = (ImageView) convertView.findViewById(R.id.film_poster);
-        Picasso.with(getContext()).load(posterUrl).into(filmPoster);
+        Picasso.with(getContext()).load(posterUrl).into(viewHolder.filmPoster);
         return convertView;
     }
 }

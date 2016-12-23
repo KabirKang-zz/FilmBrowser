@@ -75,11 +75,14 @@ public class DetailActivity extends AppCompatActivity {
         private void getRelatedVideos(String id) {
             MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
             Call<JsonObject> call = service.getRelatedVideos(id);
+            Log.d(LOG_TAG, "GONNA CALL");
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    Log.d(LOG_TAG, "GOT STUFF");
                     if (response.isSuccessful()) {
-                        Log.d(LOG_TAG, response.body().getAsString());
+                        Log.d(LOG_TAG, "SUCCESS");
+                        Log.d(LOG_TAG, response.body().toString());
                     } else {
                         Log.d(LOG_TAG, "SOMETHING WENT WRONG");
                     }
@@ -87,7 +90,7 @@ public class DetailActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-
+                    Log.d(LOG_TAG, "SOMETHING ELSE WENT WRONG");
                 }
             });
         }

@@ -45,6 +45,8 @@ public class Film implements Parcelable {
     @Expose
     private String mReleaseDate;
 
+    private RelatedVideo[] mRelatedVideos;
+
     public Film(String mId, String posterPath, String title, String overview, String voteAverage, String releaseDate) {
         this.mId = mId;
         this.mPosterPath = posterPath;
@@ -100,6 +102,14 @@ public class Film implements Parcelable {
 
     public void setReleaseDate(String releaseDate) {
         mReleaseDate = releaseDate;
+    }
+
+    public RelatedVideo[] getmRelatedVideos() {
+        return mRelatedVideos;
+    }
+
+    public void setmRelatedVideos(RelatedVideo[] mRelatedVideos) {
+        this.mRelatedVideos = mRelatedVideos;
     }
 
     @Override
