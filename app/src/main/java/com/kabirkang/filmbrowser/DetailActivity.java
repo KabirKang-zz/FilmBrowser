@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -60,6 +61,8 @@ public class DetailActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
             if (intent != null && intent.hasExtra(getString(R.string.film_extra))) {
+                mRelatedVideoAdapter = new RelatedVideoAdapter(getActivity(), new ArrayList<RelatedVideo>());
+                mRelatedVideoAdapter.setNotifyOnChange(true);
                 Film film = intent.getParcelableExtra(getString(R.string.film_extra));
                 mIdStr = film.getmId();
                 mTitleStr = film.getTitle();
@@ -69,6 +72,8 @@ public class DetailActivity extends AppCompatActivity {
 
                 mReleaseStr = "Release Date: " + film.getReleaseDate();
                 mRatingStr = "Vote Average: " + film.getVoteAverage();
+                ListView videoList = (ListView) rootView.findViewById(R.id.related_videos_list);
+                videoList.setAdapter(mRelatedVideoAdapter);
                 ((TextView) rootView.findViewById(R.id.detail_title)).setText(mTitleStr);
                 ((TextView) rootView.findViewById(R.id.detail_overview)).setText(mOverviewStr);
                 ((TextView) rootView.findViewById(R.id.detail_date)).setText(mReleaseStr);
@@ -91,12 +96,12 @@ public class DetailActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                     if (response.isSuccessful()) {
-                        Log.d(LOG_TAG, "SUCCESS");
                         List<RelatedVideo> relatedVideos = gson.fromJson(response.body(), listType);
                         if (!relatedVideos.isEmpty()) {
                             mRelatedVideoAdapter.clear();
                             for (RelatedVideo video : relatedVideos) {
                                 mRelatedVideoAdapter.add(video);
+                                Log.d(LOG_TAG, video.getmKey());
                             }
                         }
                     } else {

@@ -95,7 +95,6 @@ public class FilmsFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Film film = mFilmsAdapter.getItem(i);
-                Log.d(LOG_TAG, "onClick" + film.getmId());
                 Intent detailIntent = new Intent(getActivity(), DetailActivity.class).putExtra(getString(R.string.film_extra), film);
                 startActivity(detailIntent);
             }

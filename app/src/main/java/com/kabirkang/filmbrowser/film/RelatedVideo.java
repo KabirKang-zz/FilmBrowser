@@ -51,6 +51,14 @@ public class RelatedVideo {
     @Expose
     private String mCountry;
 
+    public String getmKey() {
+        return mKey;
+    }
+
+    public String getmName() {
+        return mName;
+    }
+
     public RelatedVideo(String mVideoId, String mKey, String mName, String mSite, int mSize, String mType, String mLanguage, String mCountry) {
         this.mVideoId = mVideoId;
         this.mKey = mKey;
