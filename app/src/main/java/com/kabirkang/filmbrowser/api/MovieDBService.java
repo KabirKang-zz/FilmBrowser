@@ -19,4 +19,7 @@ public interface MovieDBService {
 
     @GET("movie/{id}/videos?api_key=e835809f980454bba7103c260b923fe4")
     Call<JsonObject> getRelatedVideos(@Path("id") String id);
+
+    @GET("movie/{id}/reviews?api_key=e835809f980454bba7103c260b923fe4")
+    Call<JsonObject> getReviews(@Path("id") String id);
 }

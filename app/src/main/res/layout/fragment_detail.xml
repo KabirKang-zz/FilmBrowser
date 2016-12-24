@@ -61,6 +61,14 @@
             android:id="@+id/related_videos_list"
             android:layout_below="@id/detail_rating">
         </ListView>
+        <ListView
+            android:nestedScrollingEnabled="true"
+            android:fillViewport="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/reviews_list"
+            android:layout_below="@id/related_videos_list">
+        </ListView>
 
     </RelativeLayout>
 </ScrollView>

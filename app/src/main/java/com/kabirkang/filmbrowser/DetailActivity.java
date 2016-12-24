@@ -20,6 +20,7 @@ import com.kabirkang.filmbrowser.api.ApiClient;
 import com.kabirkang.filmbrowser.api.MovieDBService;
 import com.kabirkang.filmbrowser.film.Film;
 import com.kabirkang.filmbrowser.film.RelatedVideo;
+import com.kabirkang.filmbrowser.film.Review;
 import com.squareup.picasso.Picasso;
 
 import java.lang.reflect.Type;
@@ -47,6 +48,7 @@ public class DetailActivity extends AppCompatActivity {
     public static class DetailFragment extends Fragment {
         private static final String LOG_TAG = DetailFragment.class.getSimpleName();
         private RelatedVideoAdapter mRelatedVideoAdapter;
+        private ReviewAdapter mReviewAdapter;
         private String mIdStr;
         private String mTitleStr;
         private String mOverviewStr;
@@ -63,6 +65,8 @@ public class DetailActivity extends AppCompatActivity {
             if (intent != null && intent.hasExtra(getString(R.string.film_extra))) {
                 mRelatedVideoAdapter = new RelatedVideoAdapter(getActivity(), new ArrayList<RelatedVideo>());
                 mRelatedVideoAdapter.setNotifyOnChange(true);
+                mReviewAdapter = new ReviewAdapter(getActivity(), new ArrayList<Review>());
+                mReviewAdapter.setNotifyOnChange(true);
                 Film film = intent.getParcelableExtra(getString(R.string.film_extra));
                 mIdStr = film.getmId();
                 mTitleStr = film.getTitle();
@@ -73,7 +77,10 @@ public class DetailActivity extends AppCompatActivity {
                 mReleaseStr = "Release Date: " + film.getReleaseDate();
                 mRatingStr = "Vote Average: " + film.getVoteAverage();
                 ListView videoList = (ListView) rootView.findViewById(R.id.related_videos_list);
+                ListView reviewList = (ListView) rootView.findViewById(R.id.reviews_list);
+
                 videoList.setAdapter(mRelatedVideoAdapter);
+                reviewList.setAdapter(mReviewAdapter);
                 ((TextView) rootView.findViewById(R.id.detail_title)).setText(mTitleStr);
                 ((TextView) rootView.findViewById(R.id.detail_overview)).setText(mOverviewStr);
                 ((TextView) rootView.findViewById(R.id.detail_date)).setText(mReleaseStr);
@@ -81,6 +88,7 @@ public class DetailActivity extends AppCompatActivity {
                 Picasso.with(getContext()).load(mPosterStr).into((ImageView) rootView.findViewById(R.id.detail_poster));
 
                 getRelatedVideos(mIdStr);
+                getReviews(mIdStr);
             }
             return rootView;
         }
@@ -101,7 +109,36 @@ public class DetailActivity extends AppCompatActivity {
                             mRelatedVideoAdapter.clear();
                             for (RelatedVideo video : relatedVideos) {
                                 mRelatedVideoAdapter.add(video);
-                                Log.d(LOG_TAG, video.getmKey());
+                            }
+                        }
+                    } else {
+                        Log.d(LOG_TAG, "SOMETHING WENT WRONG");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    Log.d(LOG_TAG, "SOMETHING ELSE WENT WRONG");
+                }
+            });
+        }
+
+        private void getReviews(String id) {
+            final Type listType = new TypeToken<ArrayList<Review>>(){}.getType();
+            final Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(listType, new Review.ReviewsDeserializer())
+                    .create();
+            MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
+            Call<JsonObject> call = service.getReviews(id);
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (response.isSuccessful()) {
+                        List<Review> reviews = gson.fromJson(response.body(), listType);
+                        if (!reviews.isEmpty()) {
+                            mReviewAdapter.clear();
+                            for (Review review : reviews) {
+                                mReviewAdapter.add(review);
                             }
                         }
                     } else {
