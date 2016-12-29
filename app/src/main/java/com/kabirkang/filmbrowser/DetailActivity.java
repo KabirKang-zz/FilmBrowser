@@ -1,16 +1,21 @@
 package com.kabirkang.filmbrowser;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -80,6 +85,14 @@ public class DetailActivity extends AppCompatActivity {
                 ListView reviewList = (ListView) rootView.findViewById(R.id.reviews_list);
 
                 videoList.setAdapter(mRelatedVideoAdapter);
+                videoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        RelatedVideo video = mRelatedVideoAdapter.getItem(i);
+                        Intent youtubeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + video.getmKey()));
+                        startActivity(youtubeIntent);
+                    }
+                });
                 reviewList.setAdapter(mReviewAdapter);
                 ((TextView) rootView.findViewById(R.id.detail_title)).setText(mTitleStr);
                 ((TextView) rootView.findViewById(R.id.detail_overview)).setText(mOverviewStr);
@@ -89,6 +102,20 @@ public class DetailActivity extends AppCompatActivity {
 
                 getRelatedVideos(mIdStr);
                 getReviews(mIdStr);
+
+                ToggleButton toggleButton;
+                toggleButton = (ToggleButton) rootView.findViewById(R.id.favoriteButton);
+                toggleButton.setChecked(false);
+                toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                        if (isChecked) {
+                            Log.d(LOG_TAG, "CHECKED");
+                        } else {
+                            Log.d(LOG_TAG, "NOT CHECKED");
+                        }
+                    }
+                });
             }
             return rootView;
         }
