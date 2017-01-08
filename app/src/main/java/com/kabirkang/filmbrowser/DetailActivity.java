@@ -1,9 +1,11 @@
 package com.kabirkang.filmbrowser;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -32,7 +34,9 @@ import com.squareup.picasso.Picasso;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -105,21 +109,52 @@ public class DetailActivity extends AppCompatActivity {
                 getReviews(mIdStr);
 
                 final ToggleButton toggleButton = (ToggleButton) rootView.findViewById(R.id.favoriteButton);
-                toggleButton.setChecked(false);
                 final Drawable favorited = ContextCompat.getDrawable(inflater.getContext(), R.drawable.ic_favorited);
                 final Drawable notFavorited = ContextCompat.getDrawable(inflater.getContext(), R.drawable.ic_unfavorited);
-                toggleButton.setBackgroundDrawable(notFavorited);
+                Boolean isFavorite = isFavorite(mIdStr);
+                toggleButton.setChecked(isFavorite);
+                toggleButton.setBackgroundDrawable(isFavorite ? favorited : notFavorited);
                 toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked)
+                        if (isChecked) {
+                            setFavorite(mIdStr);
                             toggleButton.setBackgroundDrawable(favorited);
-                        else
+                        }
+                        else {
+                            setUnfavorite(mIdStr);
                             toggleButton.setBackgroundDrawable(notFavorited);
+                        }
                     }
                 });
             }
             return rootView;
+        }
+
+        private boolean isFavorite(String videoId) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+            Set<String> favorites = prefs.getStringSet(getString(R.string.pref_search_favorites), new HashSet<String>());
+            return favorites.contains(videoId);
+        }
+
+        private void setFavorite(String videoId) {
+            String favoritesKey = getString(R.string.pref_search_favorites);
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+            Set<String> favorites = prefs.getStringSet(favoritesKey, new HashSet<String>());
+            favorites.add(videoId);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putStringSet(favoritesKey, favorites);
+            editor.commit();
+        }
+
+        private void setUnfavorite(String videoId) {
+            String favoritesKey = getString(R.string.pref_search_favorites);
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+            Set<String> favorites = prefs.getStringSet(favoritesKey, new HashSet<String>());
+            favorites.remove(videoId);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putStringSet(favoritesKey, favorites);
+            editor.commit();
         }
 
         private void getRelatedVideos(String id) {
