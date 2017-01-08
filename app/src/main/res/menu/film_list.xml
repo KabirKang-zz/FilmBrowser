@@ -16,6 +16,9 @@
             <item
                 android:id="@+id/rating_menu_option"
                 android:title="@string/pref_search_label_rated"/>
+            <item
+                android:id="@+id/favorites_menu_option"
+                android:title="@string/pref_search_label_favorites"/>
         </menu>
     </item>
 </menu>

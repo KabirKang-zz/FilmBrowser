@@ -28,8 +28,8 @@
                 android:layout_height="40dp"
                 android:layout_toRightOf="@id/detail_title"
                 android:id="@+id/favoriteButton"
-                android:textOn="T"
-                android:textOff="F"/>
+                android:textOn=""
+                android:textOff=""/>
         </LinearLayout>
         <ImageView
             android:layout_centerHorizontal="true"

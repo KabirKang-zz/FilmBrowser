@@ -1,6 +1,7 @@
 package com.kabirkang.filmbrowser;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -103,17 +104,18 @@ public class DetailActivity extends AppCompatActivity {
                 getRelatedVideos(mIdStr);
                 getReviews(mIdStr);
 
-                ToggleButton toggleButton;
-                toggleButton = (ToggleButton) rootView.findViewById(R.id.favoriteButton);
+                final ToggleButton toggleButton = (ToggleButton) rootView.findViewById(R.id.favoriteButton);
                 toggleButton.setChecked(false);
+                final Drawable favorited = ContextCompat.getDrawable(inflater.getContext(), R.drawable.ic_favorited);
+                final Drawable notFavorited = ContextCompat.getDrawable(inflater.getContext(), R.drawable.ic_unfavorited);
+                toggleButton.setBackgroundDrawable(notFavorited);
                 toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                        if (isChecked) {
-                            Log.d(LOG_TAG, "CHECKED");
-                        } else {
-                            Log.d(LOG_TAG, "NOT CHECKED");
-                        }
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked)
+                            toggleButton.setBackgroundDrawable(favorited);
+                        else
+                            toggleButton.setBackgroundDrawable(notFavorited);
                     }
                 });
             }
