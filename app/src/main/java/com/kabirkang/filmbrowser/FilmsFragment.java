@@ -2,12 +2,14 @@ package com.kabirkang.filmbrowser;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -44,7 +46,9 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -81,6 +85,7 @@ public class FilmsFragment extends Fragment {
                 updateFilms(R.string.pref_search_rated);
                 return true;
             case R.id.favorites_menu_option:
+                viewFavorites();
                 Log.d(LOG_TAG, getString(R.string.pref_search_favorites));
                 return true;
             default:
@@ -141,6 +146,37 @@ public class FilmsFragment extends Fragment {
                 Log.d(LOG_TAG, "FAILURE");
             }
         });
+    }
+
+    private void viewFavorites() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        Set<String> favorites = prefs.getStringSet(getString(R.string.pref_search_favorites), new HashSet<String>());
+        mFilmsAdapter.clear();
+
+        final Gson gson = new GsonBuilder()
+                .create();
+        MovieDBService service = ApiClient.getClient().create(MovieDBService.class);
+        for (String filmID : favorites) {
+            Call<JsonObject> call = service.getMovie(filmID);
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (response.isSuccessful()) {
+                        Film film = gson.fromJson(response.body(), Film.class);
+                        mFilmsAdapter.add(film);
+                        mFilmsAdapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(getActivity(), R.string.results_error,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    Log.d(LOG_TAG, "FAILURE");
+                }
+            });
+        }
     }
 
     @Override

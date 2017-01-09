@@ -141,6 +141,7 @@ public class DetailActivity extends AppCompatActivity {
             String favoritesKey = getString(R.string.pref_search_favorites);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
             Set<String> favorites = prefs.getStringSet(favoritesKey, new HashSet<String>());
+            Log.d(LOG_TAG, "favorites before adding " + favorites);
             favorites.add(videoId);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putStringSet(favoritesKey, favorites);
@@ -151,6 +152,7 @@ public class DetailActivity extends AppCompatActivity {
             String favoritesKey = getString(R.string.pref_search_favorites);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
             Set<String> favorites = prefs.getStringSet(favoritesKey, new HashSet<String>());
+            Log.d(LOG_TAG, "favorites before removing " + favorites);
             favorites.remove(videoId);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putStringSet(favoritesKey, favorites);
