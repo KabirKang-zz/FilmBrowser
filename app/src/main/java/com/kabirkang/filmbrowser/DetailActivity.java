@@ -140,7 +140,7 @@ public class DetailActivity extends AppCompatActivity {
         private void setFavorite(String videoId) {
             String favoritesKey = getString(R.string.pref_search_favorites);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-            Set<String> favorites = prefs.getStringSet(favoritesKey, new HashSet<String>());
+            Set<String> favorites = new HashSet<String>(prefs.getStringSet(favoritesKey, new HashSet<String>()));
             Log.d(LOG_TAG, "favorites before adding " + favorites);
             favorites.add(videoId);
             SharedPreferences.Editor editor = prefs.edit();
@@ -151,7 +151,7 @@ public class DetailActivity extends AppCompatActivity {
         private void setUnfavorite(String videoId) {
             String favoritesKey = getString(R.string.pref_search_favorites);
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-            Set<String> favorites = prefs.getStringSet(favoritesKey, new HashSet<String>());
+            Set<String> favorites = new HashSet<String>(prefs.getStringSet(favoritesKey, new HashSet<String>()));
             Log.d(LOG_TAG, "favorites before removing " + favorites);
             favorites.remove(videoId);
             SharedPreferences.Editor editor = prefs.edit();
