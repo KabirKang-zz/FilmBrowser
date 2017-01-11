@@ -76,17 +76,22 @@ public class FilmsFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        int preference;
         switch (item.getItemId()) {
-
             case R.id.popular_menu_option:
-                updateFilms(R.string.pref_search_popular);
+                preference = R.string.pref_search_popular;
+                updateFilms(preference);
+                setSortPreference(preference);
                 return true;
             case R.id.rating_menu_option:
-                updateFilms(R.string.pref_search_rated);
+                preference = R.string.pref_search_rated;
+                updateFilms(preference);
+                setSortPreference(preference);
                 return true;
             case R.id.favorites_menu_option:
+                preference = R.string.pref_search_favorites;
                 viewFavorites();
-                Log.d(LOG_TAG, getString(R.string.pref_search_favorites));
+                setSortPreference(preference);
                 return true;
             default:
                 break;
@@ -112,6 +117,21 @@ public class FilmsFragment extends Fragment {
             }
         });
         return rootView;
+    }
+
+    private void setSortPreference(int preference) {
+        Log.d(LOG_TAG, "preference " + preference);
+        String sortKey = getString(R.string.sort_key);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(sortKey, preference);
+        editor.commit();
+    }
+
+    private int getSortPreference() {
+        String sortKey = getString(R.string.sort_key);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        return prefs.getInt(getString(R.string.sort_key), R.string.pref_search_popular);
     }
 
     private void updateFilms(int searchType) {
@@ -182,7 +202,12 @@ public class FilmsFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        updateFilms(R.string.pref_search_popular);
+        int preference = getSortPreference();
+        if (preference == R.string.pref_search_favorites) {
+            viewFavorites();
+        } else {
+            updateFilms(getSortPreference());
+        }
     }
 
     public class FetchFilmsTask extends AsyncTask<String, Void, Film[]> {
