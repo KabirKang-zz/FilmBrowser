@@ -59,6 +59,7 @@ import static com.kabirkang.filmbrowser.BuildConfig.MOVIE_DB_API_KEY;
 public class FilmsFragment extends Fragment {
     private final String LOG_TAG = FilmsFragment.class.getSimpleName();
     private FilmAdapter mFilmsAdapter;
+    private ArrayList<Film> filmsBundle;
 
     public FilmsFragment() {
     }
@@ -108,6 +109,19 @@ public class FilmsFragment extends Fragment {
         GridView gridView = (GridView) rootView.findViewById(R.id.films_grid);
         gridView.setAdapter(mFilmsAdapter);
 
+        if (savedInstanceState != null) {
+            filmsBundle = savedInstanceState.getParcelableArrayList(getString(R.string.films_bundle));
+            mFilmsAdapter.addAll(filmsBundle);
+        } else {
+            filmsBundle = new ArrayList<>();
+            int preference = getSortPreference();
+            if (preference == R.string.pref_search_favorites) {
+                viewFavorites();
+            } else {
+                updateFilms(getSortPreference());
+            }
+        }
+
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -119,8 +133,13 @@ public class FilmsFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelableArrayList(getString(R.string.films_bundle), filmsBundle);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
     private void setSortPreference(int preference) {
-        Log.d(LOG_TAG, "preference " + preference);
         String sortKey = getString(R.string.sort_key);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
         SharedPreferences.Editor editor = prefs.edit();
@@ -135,6 +154,9 @@ public class FilmsFragment extends Fragment {
     }
 
     private void updateFilms(int searchType) {
+        if (!isNetworkConnected()) {
+            return;
+        }
         String search = getString(searchType);
         final Type listType = new TypeToken<ArrayList<Film>>(){}.getType();
 
@@ -152,6 +174,7 @@ public class FilmsFragment extends Fragment {
                         mFilmsAdapter.clear();
                         for (Film film : films) {
                             mFilmsAdapter.add(film);
+                            filmsBundle.add(film);
                         }
                         mFilmsAdapter.notifyDataSetChanged();
                     }
@@ -184,6 +207,7 @@ public class FilmsFragment extends Fragment {
                     if (response.isSuccessful()) {
                         Film film = gson.fromJson(response.body(), Film.class);
                         mFilmsAdapter.add(film);
+                        filmsBundle.add(film);
                         mFilmsAdapter.notifyDataSetChanged();
                     } else {
                         Toast.makeText(getActivity(), R.string.results_error,
@@ -196,127 +220,6 @@ public class FilmsFragment extends Fragment {
                     Log.d(LOG_TAG, "FAILURE");
                 }
             });
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        int preference = getSortPreference();
-        if (preference == R.string.pref_search_favorites) {
-            viewFavorites();
-        } else {
-            updateFilms(getSortPreference());
-        }
-    }
-
-    public class FetchFilmsTask extends AsyncTask<String, Void, Film[]> {
-        private final String LOG_TAG = FetchFilmsTask.class.getSimpleName();
-
-        private Film[] getFilmDataFromJson(String filmsJsonStr) throws JSONException {
-            final String FILM_LIST = "results";
-            final String ID = "id";
-            final String ORIGINAL_TITLE = "original_title";
-            final String POSTER_PATH = "poster_path";
-            final String PLOT_SYNOPSIS = "overview";
-            final String USER_RATING = "vote_average";
-            final String RELEASE_DATE = "release_date";
-
-            JSONObject filmsJson = new JSONObject(filmsJsonStr);
-            JSONArray filmsArray = filmsJson.getJSONArray(FILM_LIST);
-            Film[] results = new Film[filmsArray.length()];
-            /*
-            Needs to handle each JSON object
-             */
-
-            for (int i = 0; i < filmsArray.length(); i++) {
-                JSONObject film = filmsArray.getJSONObject(i);
-                String path = "http://image.tmdb.org/t/p/w185" + film.getString(POSTER_PATH);
-                String title = film.getString(ORIGINAL_TITLE);
-                String overview = film.getString(PLOT_SYNOPSIS);
-                String rating = film.getString(USER_RATING);
-                String id = film.getString(ID);
-                String releaseDate = film.getString(RELEASE_DATE);
-                results[i] = new Film(id, path, title, overview, rating, releaseDate);
-
-            }
-
-            return results;
-        }
-
-        @Override
-        protected Film[] doInBackground(String... params) {
-            if (params.length == 0 || !isNetworkConnected()) {
-                return null;
-            }
-
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            String filmsJsonStr = null;
-
-            try {
-                final String API_PARAM = "api_key";
-                final String MOVIE_DB_URL = "http://api.themoviedb.org/3/movie/" + params[0];
-                Uri builtUri = Uri.parse(MOVIE_DB_URL).buildUpon()
-                        .appendQueryParameter(API_PARAM, MOVIE_DB_API_KEY)
-                        .build();
-
-                URL url = new URL(builtUri.toString());
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-                String line;
-
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "/n");
-                }
-
-                if (buffer.length() == 0) {
-                    return null;
-                }
-
-                filmsJsonStr = buffer.toString();
-            } catch (IOException e) {
-                Log.e(LOG_TAG, "Error ", e);
-                return null;
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        Log.e(LOG_TAG, "Error closing stream", e);
-                    }
-                }
-            }
-            try {
-                return getFilmDataFromJson(filmsJsonStr);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, e.getMessage(), e);
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Film[] result) {
-            if (result != null) {
-                mFilmsAdapter.clear();
-                for (Film film : result) {
-                    mFilmsAdapter.add(film);
-                }
-            } else {
-                Toast.makeText(getActivity(), R.string.results_error,
-                        Toast.LENGTH_LONG).show();
-            }
         }
     }
 
